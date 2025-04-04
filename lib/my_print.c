@@ -2,7 +2,7 @@
  * @Author: Engeryu
  * @Date:   2018-05-04 09:02:16
  * @Last Modified by:   Engeryu
- * @Last Modified time: 2025-03-30 22:21:49
+ * @Last Modified time: 2025-04-04 18:04:17
  * @Description: Implementation of the my_print library.
  *               This library provides functions for printing output:
  *               - my_putchar: writes a single character to the standard output.
@@ -13,17 +13,34 @@
 #include "my_print.h"
 #include <unistd.h>
 
-/*
-* Writes a character to the standard output.
-*/
+// Static buffer and index for buffered output
+static char buffer[BUFFER_SIZE];
+static int buffer_index = 0;
+
+// Writes a character to the standard output using buffered output.
 void my_putchar(char c)
 {
-    write(1, &c, 1);
+    buffer[buffer_index++] = c;
+
+    // Flush the buffer if full or a newline is encountered
+    if (buffer_index == BUFFER_SIZE || c == '\n')
+    {
+        write(1, buffer, buffer_index);
+        buffer_index = 0; // Reset the buffer index
+    }
 }
 
-/*
-* Writes a null-terminated string to the standard output.
-*/
+//Flushes the internal buffer, ensuring all buffered data is written to the output.
+void flush_buffer(void)
+{
+    if (buffer_index > 0)
+    {
+        write(1, buffer, buffer_index);
+        buffer_index = 0; // Reset the buffer index
+    }
+}
+
+// Writes a null-terminated string to the standard output.
 void my_putstr(const char *str)
 {
     while (*str)
@@ -34,15 +51,15 @@ void my_putstr(const char *str)
 }
 
 /*
-* Writes an integer to the standard output.
-* This function handles negative numbers.
-*/
+ * Writes an integer to the standard output.
+ * Handles negative numbers correctly.
+ */
 void my_putnbr(int n)
 {
     if (n < 0)
     {
         my_putchar('-');
-        /* Handle the most negative number */
+        /* Handle the most negative number (-2147483648) */
         if (n == -2147483648)
         {
             my_putstr("2147483648");
